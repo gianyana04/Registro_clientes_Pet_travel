@@ -1,6 +1,7 @@
 from clientes import Cliente
 from mascotas import Mascota
 from viajes import Viaje
+from validaciones import pedir_fecha, pedir_telefono, pedir_si_no
 
 
 class SistemaPetTravel:
@@ -13,7 +14,7 @@ class SistemaPetTravel:
         nombre = input("Nombre completo: ")
         documento = input("Documento: ")
         direccion = input("Dirección: ")
-        telefono = input("Teléfono: ")
+        telefono = pedir_telefono("Teléfono: ")
         correo = input("Correo: ")
 
         cliente = Cliente(
@@ -28,10 +29,10 @@ class SistemaPetTravel:
         especie = input("Especie: ")
         raza = input("Raza: ")
         sexo = input("Sexo: ")
-        fecha = input("Fecha nacimiento: ")
+        fecha = pedir_fecha("Fecha nacimiento (DD/MM/AAAA): ")
         color = input("Color: ")
         microchip = input("Microchip: ")
-        esterilizada = input("Esterilizada: ")
+        esterilizada = pedir_si_no("Esterilizada (Si/No): ")
 
         mascota = Mascota(
             nombre_mascota,
@@ -49,8 +50,8 @@ class SistemaPetTravel:
         pais = input("País destino: ")
         direccion_destino = input("Dirección destino: ")
         codigo = input("Código postal: ")
-        telefono_destino = input("Teléfono destino: ")
-        fecha_viaje = input("Fecha viaje: ")
+        telefono_destino = pedir_telefono("Teléfono destino: ")
+        fecha_viaje = pedir_fecha("Fecha viaje (DD/MM/AAAA): ")
 
         viaje = Viaje(
             cliente,
