@@ -217,6 +217,17 @@ def mostrarResultadoCliente(texto: str) -> None:
 # FUNCIONES DE REGISTRO
 # =========================
 
+def generarCodigoMascota() -> str:
+    max_num = 0
+    for mascota in mascotas:
+        codigo = mascota.codigo
+        if codigo.startswith("M") and codigo[1:].isdigit():
+            num = int(codigo[1:])
+            if num > max_num:
+                max_num = num
+    return f"M{max_num + 1:03d}"
+
+
 def registrarCliente() -> None:
     try:
         dni: str = entradaDniCliente.get().strip()
@@ -239,7 +250,10 @@ def registrarCliente() -> None:
         cliente = Cliente(dni, nombre, telefono, correo, direccion)
         clientes.append(cliente)
 
-        messagebox.showinfo("Registro correcto", "Cliente registrado correctamente.")
+        respuesta = messagebox.askyesno(
+            "Registro correcto", 
+            "Cliente registrado correctamente.\n¿Desea registrar a su mascota ahora?"
+        )
 
         limpiarCampos([
             entradaDniCliente,
@@ -249,6 +263,19 @@ def registrarCliente() -> None:
             entradaDireccionCliente
         ])
 
+        if respuesta:
+            # Redirigir a Registrar Mascota y precompletar el DNI
+            limpiarCampos([
+                entradaDniClienteMascota,
+                entradaNombreMascota,
+                entradaEspecieMascota,
+                entradaRazaMascota,
+                entradaEdadMascota,
+                entradaDestinoMascota
+            ])
+            entradaDniClienteMascota.insert(0, dni)
+            mostrarFrame(frameRegistrarMascota)
+
     except Exception as error:
         messagebox.showerror("Error", str(error))
 
@@ -256,7 +283,6 @@ def registrarCliente() -> None:
 def registrarMascota() -> None:
     try:
         dniCliente: str = entradaDniClienteMascota.get().strip()
-        codigo: str = entradaCodigoMascota.get().strip()
         nombre: str = entradaNombreMascota.get().strip()
         especie: str = entradaEspecieMascota.get().strip()
         raza: str = entradaRazaMascota.get().strip()
@@ -270,12 +296,6 @@ def registrarMascota() -> None:
         if cliente is None:
             raise RegistroNoEncontradoError("No existe un cliente con ese DNI.")
 
-        if codigo == "":
-            raise ValorInvalidoError("El código de mascota es obligatorio.")
-
-        if buscarMascotaPorCodigo(codigo) is not None:
-            raise RegistroDuplicadoError("Ya existe una mascota con ese código.")
-
         if nombre == "" or especie == "" or destino == "":
             raise ValorInvalidoError("Nombre, especie y destino son obligatorios.")
 
@@ -285,22 +305,35 @@ def registrarMascota() -> None:
         raza = datoOpcional(raza)
         edad = datoOpcional(edad)
 
+        # Generar código único automáticamente
+        codigo: str = generarCodigoMascota()
+
         mascota = Mascota(codigo, nombre, especie, raza, edad, destino, dniCliente)
 
         mascotas.append(mascota)
         cliente.mascotas.append(mascota)
 
-        messagebox.showinfo("Registro correcto", "Mascota registrada correctamente.")
+        messagebox.showinfo(
+            "Registro correcto", 
+            f"Mascota registrada correctamente.\n\n"
+            f"CÓDIGO ÚNICO ASIGNADO: {codigo}\n\n"
+            f"Use este código para toda la información de la mascota y del cliente."
+        )
 
         limpiarCampos([
             entradaDniClienteMascota,
-            entradaCodigoMascota,
             entradaNombreMascota,
             entradaEspecieMascota,
             entradaRazaMascota,
             entradaEdadMascota,
             entradaDestinoMascota
         ])
+
+        # Redirigir automáticamente a buscar mascota con el nuevo código
+        mostrarFrame(frameBuscarMascota)
+        entradaBuscarMascota.delete(0, tk.END)
+        entradaBuscarMascota.insert(0, codigo)
+        buscarMascota()
 
     except Exception as error:
         messagebox.showerror("Error", str(error))
@@ -664,8 +697,10 @@ tk.Label(formMascota, text="DNI del cliente *:").grid(row=0, column=0, padx=10, 
 entradaDniClienteMascota = tk.Entry(formMascota, width=40)
 entradaDniClienteMascota.grid(row=0, column=1, padx=10, pady=5)
 
-tk.Label(formMascota, text="Código de mascota *:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
+tk.Label(formMascota, text="Código de mascota:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
 entradaCodigoMascota = tk.Entry(formMascota, width=40)
+entradaCodigoMascota.insert(0, "(Se generará automáticamente)")
+entradaCodigoMascota.config(state="disabled")
 entradaCodigoMascota.grid(row=1, column=1, padx=10, pady=5)
 
 tk.Label(formMascota, text="Nombre *:").grid(row=2, column=0, padx=10, pady=5, sticky="e")
